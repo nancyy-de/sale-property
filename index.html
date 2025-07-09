@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sale Deed Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&display=swap');
+        
+        .deed-template {
+            font-family: 'Noto Serif', serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 20px;
+        }
+        
+        .seal {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            border: 2px dashed #000;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 80px;
+            margin: 20px 0;
+        }
+        
+        footer {
+            margin-top: 40px;
+            border-top: 2px solid #000;
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .signature-box {
+            width: 200px;
+            border-top: 1px solid #000;
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen py-10">
+    <div class="container mx-auto px-4">
+        <div class="bg-white rounded-lg shadow-lg p-8 max-w-3xl mx-auto">
+            <h1 class="text-3xl font-bold text-center text-blue-800 mb-8">Sale Deed Generator</h1>
+            
+            <form id="deedForm" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label for="fatherName" class="block text-sm font-medium text-gray-700">Father's Name</label>
+                        <input type="text" id="fatherName" name="fatherName" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label for="propertySize" class="block text-sm font-medium text-gray-700">Property Size (sq.ft.)</label>
+                        <input type="number" id="propertySize" name="propertySize" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label for="saleAmount" class="block text-sm font-medium text-gray-700">Sale Amount (₹)</label>
+                        <input type="number" id="saleAmount" name="saleAmount" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
+                        <input type="date" id="date" name="date" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                
+                <div class="flex justify-center">
+                    <button type="submit" class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Generate Sale Deed
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Hidden template for PDF generation -->
+        <div id="deedTemplate" class="deed-template hidden">
+            <div class="header">
+                <h2 class="text-2xl font-bold">SALE DEED</h2>
+                <p>This document is prepared under the provisions of the Indian Registration Act, 1908</p>
+            </div>
+            
+            <div class="content">
+                <p>This Sale Deed is made on <span class="field">{{date}}</span> between <span class="field">{{name}}</span>, S/o <span class="field">{{father_name}}</span>, resident of <span class="field">{{address}}</span> (hereinafter referred to as the "SELLER") of the ONE PART;</p>
+                
+                <p>AND</p>
+                
+                <p>[Buyer's Name], S/o [Buyer's Father's Name], resident of [Buyer's Address] (hereinafter referred to as the "PURCHASER") of the OTHER PART;</p>
+                
+                <div class="seal">SEAL</div>
+                
+                <p>WHEREAS the SELLER is the absolute owner and in possession of the property more fully described in the Schedule hereunder written.</p>
+                
+                <p>AND WHEREAS the SELLER has agreed to sell and the PURCHASER has agreed to purchase all that piece and parcel of land measuring about <span class="field">{{property_size}}</span> sq.ft. (hereinafter referred to as the "SCHEDULE PROPERTY") for a total sale consideration of ₹<span class="field">{{sale_amount}}</span> (Rupees <span class="field">{{sale_amount_words}}</span> only).</p>
+                
+                <p>NOW THIS DEED WITNESSETH that in pursuance of the said agreement and in consideration of the sum of ₹<span class="field">{{sale_amount}}</span> paid by the PURCHASER to the SELLER (receipt of which the SELLER hereby acknowledges), the SELLER DOTH HEREBY transfer the SCHEDULE PROPERTY unto and to the use of the PURCHASER absolutely.</p>
+                
+                <p>TO HOLD the same unto and to the use of the PURCHASER absolutely and forever with all rights, privileges, easements and advantages whatsoever in anywise appertaining or belonging thereto.</p>
+                
+                <p>AND the SELLER doth hereby covenant with the PURCHASER that the SELLER has a good and marketable title to the SCHEDULE PROPERTY and has full power to sell the same and that the property is free from all encumbrances.</p>
+                
+                <h3 class="text-lg font-bold mt-8 mb-4">SCHEDULE OF PROPERTY</h3>
+                <p>The Schedule above referred to is located at [Property Location] within the registration sub-district of [Sub-District] and District of [District], [State].</p>
+                
+                <p>Bounded on:</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>North by: [Northern Boundary]</li>
+                    <li>South by: [Southern Boundary]</li>
+                    <li>East by: [Eastern Boundary]</li>
+                    <li>West by: [Western Boundary]</li>
+                </ul>
+                
+                <p>IN WITNESS WHEREOF the parties hereto have hereunto set and subscribed their respective hands and seals on the day, month and year first above written.</p>
+                
+                <footer>
+                    <div>
+                        <p>Signed and delivered by the SELLER</p>
+                        <div class="signature-box">Seller's Signature</div>
+                    </div>
+                    
+                    <div>
+                        <p>Signed and delivered by the PURCHASER</p>
+                        <div class="signature-box">Purchaser's Signature</div>
+                    </div>
+                </footer>
+                
+                <div class="text-center mt-10">
+                    <p>Witnesses:</p>
+                    <div class="flex justify-around mt-4">
+                        <div class="signature-box" style="width: 180px;">1st Witness</div>
+                        <div class="signature-box" style="width: 180px;">2nd Witness</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wait for the jsPDF library to be loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const { jsPDF } = window.jspdf;
+            const form = document.getElementById('deedForm');
+            
+            // Function to convert numbers to words
+            function numberToWords(num) {
+                const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+                const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+                const tens = ['', 'Ten', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+                
+                if (num === 0) return 'Zero';
+                
+                function convertLessThanOneThousand(n) {
+                    if (n === 0) return '';
+                    if (n < 10) return units[n];
+                    if (n < 20) return teens[n - 10];
+                    if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + units[n % 10] : '');
+                    return units[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' and ' + convertLessThanOneThousand(n % 100) : '');
+                }
+                
+                if (num < 1000) return convertLessThanOneThousand(num);
+                
+                const scales = ['', 'Thousand', 'Lakh', 'Crore'];
+                let result = '';
+                let scaleIndex = 0;
+                
+                while (num > 0) {
+                    const chunk = num % 100;
+                    const chunkInWords = convertLessThanOneThousand(chunk);
+                    if (chunkInWords !== '') {
+                        result = chunkInWords + (scales[scaleIndex] ? ' ' + scales[scaleIndex] : '') + (result ? ' ' + result : result);
+                    }
+                    if (num >= 100) {
+                        num = Math.floor(num / 100);
+                    } else {
+                        num = 0;
+                    }
+                    scaleIndex++;
+                }
+                
+                return result;
+            }
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form values
+                const fullName = document.getElementById('fullName').value;
+                const fatherName = document.getElementById('fatherName').value;
+                const propertySize = document.getElementById('propertySize').value;
+                const saleAmount = document.getElementById('saleAmount').value;
+                const dateInput = document.getElementById('date').value;
+                
+                // Format date
+                const date = new Date(dateInput);
+                const formattedDate = date.toLocaleDateString('en-IN', { 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                });
+                
+                // Convert sale amount to words
+                const saleAmountWords = numberToWords(parseInt(saleAmount));
+                
+                // Get the template HTML
+                const template = document.getElementById('deedTemplate').cloneNode(true);
+                template.classList.remove('hidden');
+                
+                // Replace placeholders with actual values
+                const fields = template.querySelectorAll('.field');
+                fields.forEach(field => {
+                    const fieldName = field.textContent.replace(/[{}]/g, '');
+                    switch(fieldName) {
+                        case 'name':
+                            field.textContent = fullName;
+                            break;
+                        case 'father_name':
+                            field.textContent = fatherName;
+                            break;
+                        case 'property_size':
+                            field.textContent = propertySize;
+                            break;
+                        case 'sale_amount':
+                            field.textContent = saleAmount;
+                            break;
+                        case 'sale_amount_words':
+                            field.textContent = saleAmountWords;
+                            break;
+                        case 'date':
+                            field.textContent = formattedDate;
+                            break;
+                    }
+                });
+                
+                // Create a new div for the content to be converted to PDF
+                const pdfContent = document.createElement('div');
+                pdfContent.innerHTML = template.innerHTML;
+                document.body.appendChild(pdfContent);
+                
+                // Initialize jsPDF
+                const doc = new jsPDF();
+                
+                // Add content to PDF
+                doc.html(pdfContent, {
+                    callback: function(pdf) {
+                        // Remove the temporary div
+                        document.body.removeChild(pdfContent);
+                        
+                        // Save the PDF
+                        pdf.save(`Sale_Deed_${fullName.replace(/\s+/g, '_')}.pdf`);
+                    },
+                    margin: [20, 20, 20, 20],
+                    autoPaging: 'text',
+                    width: 190, // target width in the PDF document
+                    windowWidth: 800 // window width in CSS pixels
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
